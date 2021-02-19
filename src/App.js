@@ -20,6 +20,7 @@ class App extends Component {
       imgUrl: "",
       box: {},
       route: "SignIn",
+      isSignedIn: false,
     };
   }
 
@@ -55,26 +56,34 @@ class App extends Component {
   };
 
   onRouteChange = (route) => {
+    if (route === "SignOut") {
+      this.setState({ isSignedIn: false });
+    } else if (route === "Home") {
+      this.setState({ isSignedIn: true });
+    }
+
     this.setState({ route: route });
   };
 
   render() {
+    const { route, box, imgUrl, isSignedIn } = this.state;
+
     return (
       <div className="App">
-        <Navigation onRouteChange={this.onRouteChange} />
-        {this.state.route === "Home" ? (
+        <Navigation
+          isSignedIn={isSignedIn}
+          onRouteChange={this.onRouteChange}
+        />
+        {route === "Home" ? (
           <div>
             <Rank />
             <ImageLinkForm
               onInputChange={this.onInputChange}
               OnButtonSubmit={this.OnButtonSubmit}
             />
-            <FaceRecognition
-              box={this.state.box}
-              imageUrl={this.state.imgUrl}
-            />
+            <FaceRecognition box={box} imageUrl={imgUrl} />
           </div>
-        ) : this.state.route === "SignIn" ? (
+        ) : route === "SignIn" ? (
           <SignIn onRouteChange={this.onRouteChange} />
         ) : (
           <Register onRouteChange={this.onRouteChange} />
