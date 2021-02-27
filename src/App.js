@@ -21,8 +21,27 @@ class App extends Component {
       box: {},
       route: "SignIn",
       isSignedIn: false,
+      user: {
+        id: "",
+        name: "",
+        email: "",
+        entries: 0,
+        joined: "",
+      },
     };
   }
+
+  onLoadUser = (data) => {
+    this.setState({
+      user: {
+        id: data.id,
+        name: data.name,
+        email: data.email,
+        entries: data.entries,
+        joined: data.joined,
+      },
+    });
+  };
 
   calculateFaceArea = (data) => {
     const boundBox = data.outputs[0].data.regions[0].region_info.bounding_box;
@@ -48,14 +67,31 @@ class App extends Component {
 
   OnButtonSubmit = () => {
     this.setState({ imgUrl: this.state.input });
+    console.log(this.state.user.id);
 
     app.models
-      .predict(Clarifai.FACE_DETECT_MODEL, this.state.input)
-      .then((response) => this.detectFaceBox(this.calculateFaceArea(response)))
+      .predict(Clarifai.FACE_DETECT_MODEL, this.state.imgUrl)
+      .then((response) => {
+        if (response) {
+          fetch("http://localhost:5000/image", {
+            method: "put",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              id: this.state.user.id,
+            }),
+          })
+            .then((response) => response.json())
+            .then((count) => {
+              this.setState(Object.assign(this.state.user, { entries: count }));
+            });
+        }
+        this.detectFaceBox(this.calculateFaceArea(response));
+      })
       .catch((err) => console.log(err));
   };
 
   onRouteChange = (route) => {
+    debugger;
     if (route === "SignOut") {
       this.setState({ isSignedIn: false });
     } else if (route === "Home") {
@@ -76,7 +112,10 @@ class App extends Component {
         />
         {route === "Home" ? (
           <div>
-            <Rank />
+            <Rank
+              userName={this.state.user.name}
+              entries={this.state.user.entries}
+            />
             <ImageLinkForm
               onInputChange={this.onInputChange}
               OnButtonSubmit={this.OnButtonSubmit}
@@ -84,9 +123,15 @@ class App extends Component {
             <FaceRecognition box={box} imageUrl={imgUrl} />
           </div>
         ) : route === "SignIn" ? (
-          <SignIn onRouteChange={this.onRouteChange} />
+          <SignIn
+            onLoadUser={this.onLoadUser}
+            onRouteChange={this.onRouteChange}
+          />
         ) : (
-          <Register onRouteChange={this.onRouteChange} />
+          <Register
+            onLoadUser={this.onLoadUser}
+            onRouteChange={this.onRouteChange}
+          />
         )}
       </div>
     );
