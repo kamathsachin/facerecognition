@@ -6,11 +6,21 @@ import FaceRecognition from "./components/FaceRecognition/FaceRecognition";
 import Rank from "./components/Rank/Rank";
 import SignIn from "./components/SignIn/SignIn";
 import Register from "./components/Register/Register";
-import Clarifai from "clarifai";
 
-const app = new Clarifai.App({
-  apiKey: "62f61165802140128aa8974abc0af6e9",
-});
+const initialState = {
+  input: "",
+  imgUrl: "",
+  box: {},
+  route: "SignIn",
+  isSignedIn: false,
+  user: {
+    id: "",
+    name: "",
+    email: "",
+    entries: 0,
+    joined: "",
+  },
+};
 
 class App extends Component {
   constructor() {
@@ -67,13 +77,16 @@ class App extends Component {
 
   OnButtonSubmit = () => {
     this.setState({ imgUrl: this.state.input });
-    console.log(this.state.user.id);
 
-    app.models
-      .predict(Clarifai.FACE_DETECT_MODEL, this.state.imgUrl)
+    fetch("https://enigmatic-plateau-56548.herokuapp.com/imageurl", {
+      method: "post",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ input: this.state.input }),
+    })
+      .then((response) => response.json())
       .then((response) => {
         if (response) {
-          fetch("http://localhost:5000/image", {
+          fetch("https://enigmatic-plateau-56548.herokuapp.com/image", {
             method: "put",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -93,7 +106,7 @@ class App extends Component {
   onRouteChange = (route) => {
     debugger;
     if (route === "SignOut") {
-      this.setState({ isSignedIn: false });
+      this.setState(initialState);
     } else if (route === "Home") {
       this.setState({ isSignedIn: true });
     }

@@ -23,7 +23,7 @@ class Register extends React.Component {
   };
 
   OnRegisterClick = () => {
-    fetch("http://localhost:5000/register", {
+    fetch("https://enigmatic-plateau-56548.herokuapp.com/register", {
       method: "post",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -34,7 +34,7 @@ class Register extends React.Component {
     })
       .then((response) => response.json())
       .then((user) => {
-        if (user) {
+        if (user.id) {
           this.props.onLoadUser(user);
           this.props.onRouteChange("Home");
         }
